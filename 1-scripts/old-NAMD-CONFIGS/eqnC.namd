@@ -1,0 +1,284 @@
+#############################################################
+## JOB DESCRIPTION                                         ##
+#############################################################
+# 
+# NAMD3
+# Restrained equilibration of PROT with DRUG 
+# 
+#############################################################
+## ADJUSTABLE PARAMETERS                                   ##
+#############################################################
+
+set sys            1
+set inputName      $sys.eqnB
+outputName         $sys.eqnC
+
+structure          $sys.psf 
+coordinates        $sys.pdb  
+
+set temperature    310
+
+# Continuing a job from the restart files
+#if {0} {
+if {1} {
+  # checks to see if the .coor file exists (if the sim finished)
+  # if not, sim continues from the restart files
+if [file exists $inputName.coor] {
+  bincoordinates     $inputName.coor
+  binvelocities      $inputName.vel  ;# remove the "temperature" entry if you use this!
+  extendedSystem     $inputName.xsc
+} else {
+  set restart        $inputName.restart
+  bincoordinates     $restart.coor
+  binvelocities      $restart.vel    ;# remove the "temperature" entry if you use this!
+  extendedSystem     $restart.xsc
+}
+}
+
+proc get_first_ts { xscfile } {
+  set fd [open $xscfile r]
+  gets $fd
+  gets $fd
+  gets $fd line
+  set ts [lindex $line 0]
+  close $fd
+  return $ts
+}
+
+set firsttime [get_first_ts $inputName.restart.xsc]
+set firsttime      0
+#firsttimestep      $firsttime
+
+# read system values written by CHARMM (need to convert uppercases to lowercases)
+#exec tr "\[:upper:\]" "\[:lower:\]" < ../step5_assembly.str | sed -e "s/ =//g" > step5_assembly.namd.str
+#source             step5_assembly.namd.str
+
+##############################################
+# Simulation Parameters                      #
+##############################################
+
+# Input
+paraTypeCharmm     on
+
+parameters          ../par/par_heme_ions.prm
+parameters          ../par/par_all36_lipid.prm
+parameters          ../par/par_all36m_prot.prm
+parameters          ../par/par_all36_cgenff.prm
+parameters          ../par/par_all36_na.prm
+parameters          ../par/par_all36_carb.prm
+parameters          ../par/toppar_water_ions_namd.str
+parameters          ../par/stream/na/toppar_all36_na_nad_ppi.str
+parameters          ../par/toppar_all36_lipid_cholesterol.str
+parameters          ../par/toppar_all36_prot_heme.str
+parameters          ../par/stream/prot/toppar_all36_prot_heme.str
+
+parameters /Scr/arango/Aditi-Files/forJustin/simulating.drugs/par/par_heme_ions.prm
+parameters /Scr/arango/Aditi-Files/forJustin/simulating.drugs/par/stream/prot/toppar_all36_prot_heme.str
+parameters /Scr/arango/Aditi-Files/forJustin/simulating.drugs/par/par_all36_lipid.prm
+parameters /Scr/arango/Aditi-Files/forJustin/simulating.drugs/par/par_all36m_prot.prm
+parameters /Scr/arango/membrane_AA/sepehr_build_fep/template_FEP/run/toppar/MZP.str
+parameters /Scr/arango/Aditi-Files/forJustin/simulating.drugs/par/par_all36_cgenff.prm
+parameters /Scr/arango/Aditi-Files/forJustin/simulating.drugs/par/toppar_water_ions_namd.str
+parameters /Scr/arango/membrane_AA/sepehr_build_fep/template_FEP/run/toppar/toppar_all36_lipid_cholesterol.str
+parameters /Scr/arango/ergosterol-amb/flooding_simulations/POPC.80.ERG.1.AMB.8/namd/toppar/toppar_all36_lipid_cholesterol.str
+parameters /Scr/arango/ergosterol-amb/flooding_simulations/POPC.80.ERG.1.AMB.8/namd/toppar/toppar_all36_lipid_miscellaneous.str
+parameters /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_all36_lipid_cholesterol.str
+parameters /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_all36_lipid_cholesterol.str
+parameters /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_all36_lipid_sphingo.str
+parameters /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/par_all36_lipid.prm
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/par_all36m_prot.prm
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/par_all36_na.prm
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/par_all36_carb.prm
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/par_all36_lipid.prm
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/par_all36_cgenff.prm
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/par_interface.prm
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_all36_moreions.str
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_all36_nano_lig.str
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_all36_nano_lig_patch.str
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_all36_synthetic_polymer.str
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_all36_synthetic_polymer_patch.str
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_all36_polymer_solvent.str
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_water_ions.str
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_dum_noble_gases.str
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_ions_won.str
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_all36_prot_arg0.str
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_all36_prot_c36m_d_aminoacids.str
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_all36_prot_fluoro_alkanes.str
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_all36_prot_heme.str
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_all36_prot_na_combined.str
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_all36_prot_retinol.str
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_all36_prot_model.str
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_all36_prot_modify_res.str
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_all36_na_nad_ppi.str
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_all36_na_rna_modified.str
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_all36_lipid_sphingo.str
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_all36_lipid_archaeal.str
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_all36_lipid_bacterial.str
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_all36_lipid_cardiolipin.str
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_all36_lipid_cholesterol.str
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_all36_lipid_dag.str
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_all36_lipid_inositol.str
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_all36_lipid_lnp.str
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_all36_lipid_lps.str
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_all36_lipid_mycobacterial.str
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_all36_lipid_miscellaneous.str
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_all36_lipid_model.str
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_all36_lipid_prot.str
+parameters              /Scr/arango/ergosterol-amb/weighted_ensemble/template_WESTPA/toppar/toppar_all36_label_fluorophore.str
+parameters ../par/ensemble/DRUG.str
+parameters ../par/ensemble/DRUG.prm
+############
+#   TEMP   #
+############
+
+# NOTE: Do not set the initial velocity temperature if you 
+# have also specified a .vel restart file!
+#temperature         $temperature
+
+############
+#    PBC   #
+############
+
+# Periodic Boundary Conditions
+# NOTE: Do not set the periodic cell basis if you have also 
+# specified an .xsc restart file!
+wrapWater           on
+wrapAll             on
+
+
+############
+#  FF PAR  #
+############
+
+# Force-Field Parameters
+exclude             scaled1-4
+1-4scaling          1.0
+cutoff              12.
+switching           on
+switchdist          10.
+pairlistdist        13.5
+stepspercycle      500
+pairlistsPerCycle  50
+vdwForceSwitching  on                   
+margin 8  
+
+###############
+# INTEGRATION #
+###############
+
+# Integrator Parameters (OBTAINED FROM JAVIER)
+timestep            2  ;# 2fs/step
+rigidBonds          all  ;# needed for 2fs steps
+nonbondedFreq       1
+fullElectFrequency  2  
+CUDASOAintegrate on   ;# 10
+
+
+##############
+#     PME    #
+##############
+
+#PME (for full-system periodic electrostatics)
+if {1} {
+PME                     yes;
+PMEInterpOrder          4;                 
+PMEGridSpacing          1.0;                
+PMETolerance 10e-6
+usePMECUDA         on
+}
+
+
+##############
+#  LANGEVIN  #
+##############
+
+# Constant Temperature Control
+langevin            on    ;# do langevin dynamics
+langevinDamping     1   ;# damping coefficient (gamma); let's try 0.5 /ps
+langevinTemp        $temperature
+langevinHydrogen    off    ;# don't couple langevin bath to hydrogens
+
+# Constant Pressure Control (variable volume)
+#if {0} {
+if {1} {
+useGroupPressure      yes ;# needed for 2fs steps
+useFlexibleCell       no ;# no for water box, yes for membrane
+useConstantArea       no ;# no for water box, yes for membrane
+
+langevinPiston        on
+langevinPistonTarget  1.01325 ;#  in bar -> 1 atm
+langevinPistonPeriod  100.
+langevinPistonDecay   50.
+langevinPistonTemp    $temperature
+}
+
+###############
+# Frequencies #
+###############
+
+restartfreq         5000     ;# 1000steps = every 1ps
+dcdfreq             5000
+xstFreq             5000
+outputEnergies      5000
+outputPressure      5000
+outputTiming        5000
+
+
+#############################################################
+## EXTRA PARAMETERS                                        ##
+#############################################################
+
+# Put here any custom parameters that are specific to 
+# this job (e.g., SMD, TclForces, etc...)
+
+#############
+#  COLVARS  #
+#############
+
+#Collective Variables
+#colvars on
+#colvarsConfig RMSD_Step5_colvar.colvar
+#colvarsInput fld.clc.2.1.colvars.state
+
+##############
+# TCL Forces #
+##############
+
+# Harmonic constraints
+#Constrained Atoms Constraint (set PDB beta-column to 1)
+#if {0} {
+if {1} {
+constraints       on
+consexp           2
+consref           $sys.bbA.const.pdb
+conskfile         $sys.bbA.const.pdb
+conskcol          B
+#selectConstraints   on
+#selectConstrX       off
+#selectConstrY       off
+#selectConstrZ       on
+}
+
+
+#Fixed Atoms Constraint
+if {0} {
+fixedAtoms         on
+fixedAtomsFile     o
+fixedAtomsCol      O
+fixedAtomsForces   off
+}
+
+#if {1} {
+if {0} {
+extraBonds	on
+extraBondsFile	extrabonds.txt
+}
+
+# Minimization
+set minStep 1000
+#if {1} {
+if {0} {
+ minimize            $minStep
+#reinitvels          $temperature
+}
+run  500000; #1000ps
